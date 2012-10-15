@@ -199,7 +199,9 @@ abstract class Page {
 				$projectsAction->doAction();
 				$projects = $projectsAction->getData();
 
-				if ( $request->getSessionData( 'auth' ) === 'yes' ) {
+				$projectInfo = $request->getSessionData( 'projectInfo' );
+
+				if ( $projectInfo ) {
 					$db = $this->getContext()->getDB();
 
 					$userName = $request->getSessionData( 'username' );
@@ -277,7 +279,7 @@ abstract class Page {
 <?php
 foreach ( $projects as $project ) {
 ?>
-								<li><a href="<?php echo htmlspecialchars( swarmpath( "user/{$project['name']}" ) ); ?>"><?php
+								<li><a href="<?php echo htmlspecialchars( swarmpath( "project/{$project['name']}" ) ); ?>"><?php
 									echo htmlspecialchars( $project['name'] );
 								?></a></li>
 <?php
@@ -293,7 +295,7 @@ foreach ( $projects as $project ) {
 	if ( $request->getSessionData( 'username' ) && $request->getSessionData( 'auth' ) == "yes" ) {
 		$username = htmlspecialchars( $request->getSessionData( 'username' ) );
 ?>
-						<li><a href="<?php echo swarmpath( "user/$username" ); ?>">Hello, <?php echo $username;?>!</a></li>
+						<li><a href="<?php echo swarmpath( "project/$username" ); ?>">Hello, <?php echo $username;?>!</a></li>
 						<li><a href="<?php echo swarmpath( "run/$username" );?>">Join the Swarm</a></li>
 						<li><a href="<?php echo swarmpath( 'logout' ); ?>" class="swarm-logout-link">Logout</a></li>
 <?php

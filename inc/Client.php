@@ -15,7 +15,6 @@ class Client {
 	protected $context;
 
 	protected $clientRow;
-	protected $userRow;
 
 	/**
 	 * @param $clientId int
@@ -26,17 +25,17 @@ class Client {
 
 		// Verify that the client exists.
 		$clientRow = $db->getRow(str_queryf(
-			"SELECT
+			'SELECT
 				*
 			FROM
 				clients
 			WHERE id = %u
-			LIMIT 1;",
+			LIMIT 1;',
 			$clientID
 		));
 
 		if ( !$clientRow || !$clientRow->id ) {
-			throw new SwarmException( "Invalid client ID." );
+			throw new SwarmException( 'Invalid client ID.' );
 		}
 
 		// Although we can't completely prevent fraudulent submissions
@@ -44,7 +43,7 @@ class Client {
 		// client_id's user_agent matches the User-Agent header that made
 		// this request.
 		if ( $clientRow->useragent_id != $browserInfo->getSwarmUaID() ) {
-			throw new SwarmException( "Your user agent does not match this client's registered user agent." );
+			throw new SwarmException( 'Your user agent does not match this client\'s registered user agent.' );
 		}
 
 		// Save a query by not re-selecting the row, assume success and
@@ -53,27 +52,16 @@ class Client {
 
 		// Update its record so that we know that it's still alive
 		$db->query(str_queryf(
-			"UPDATE clients
+			'UPDATE clients
 			SET
 				updated = %s
 			WHERE id = %u
-			LIMIT 1;",
+			LIMIT 1;',
 			$clientRow->updated,
 			$clientRow->id
 		));
 
-		$userRow = $db->getRow(str_queryf(
-			"SELECT
-				*
-			FROM
-				users
-			WHERE id = %u
-			LIMIT 1;",
-			$clientRow->user_id
-		));
-
 		$this->clientRow = $clientRow;
-		$this->userRow = $userRow;
 	}
 
 	protected function loadNew() {
@@ -89,38 +77,16 @@ class Client {
 		}
 
 		// Running a client doesn't require being logged in
-		$username = $request->getSessionData( "username", $request->getVal( "item" ) );
-		if ( !$username ) {
-			throw new SwarmException( "Username required." );
-		}
-
-		// Figure out what the user's ID number is
-		$userRow = $db->getRow(str_queryf(
-			"SELECT * FROM users WHERE name = %s LIMIT 1;",
-			$username
-		));
-
-		// If the user doesn't have one, create a new user row for this name
-		if ( !$userRow || !$userRow->id ) {
-			$db->query(str_queryf(
-				// This omits some of the required columns but seems to work regardless.
-				// See also github.com/jquery/testswarm/issues/148 which will fix this.
-				"INSERT INTO users (name, updated, created) VALUES(%s, %s, %s);",
-				$username,
-				swarmdb_dateformat( SWARM_NOW ),
-				swarmdb_dateformat( SWARM_NOW )
-			));
-			$userRow = $db->getRow(str_queryf(
-				"SELECT * FROM users WHERE id = %u LIMIT 1;",
-				$db->getInsertId()
-			));
+		$clientName = $request->getVal( 'item' );
+		if ( !$clientName ) {
+			throw new SwarmException( 'Name required.' );
 		}
 
 		// Insert in a new record for the client and get its ID
 		$db->query(str_queryf(
-			"INSERT INTO clients (user_id, useragent_id, useragent, ip, updated, created)
+			"INSERT INTO clients (name, useragent_id, useragent, ip, updated, created)
 			VALUES(%u, %s, %s, %s, %s, %s);",
-			$userRow->id,
+			$clientName,
 			$browserInfo->getSwarmUaID(),
 			$browserInfo->getRawUA(),
 			$request->getIP(),
@@ -129,10 +95,9 @@ class Client {
 		));
 
 		$this->clientRow = $db->getRow(str_queryf(
-			"SELECT * FROM clients WHERE id = %u LIMIT 1;",
+			'SELECT * FROM clients WHERE id = %u LIMIT 1;',
 			$db->getInsertId()
 		));
-		$this->userRow = $userRow;
 	}
 
 	public function getClientRow() {
@@ -168,15 +133,15 @@ class Client {
 		if ( !$conf->client->requireRunToken ) {
 			return true;
 		}
-		$cacheFile = $conf->storage->cacheDir . "/run_token_hash.cache";
+		$cacheFile = $conf->storage->cacheDir . '/run_token_hash.cache';
 		if ( !is_readable( $cacheFile ) ) {
-			throw new SwarmException( "Configuration requires a runToken but none has been configured." );
+			throw new SwarmException( 'Configuration requires a runToken but none has been configured.' );
 		}
 		$runTokenHash = trim( file_get_contents( $cacheFile ) );
 		if ( $runTokenHash === sha1( $runToken ) ) {
 			return true;
 		}
-		throw new SwarmException( "This TestSwarm requires a run token. Either none was entered or it is invalid." );
+		throw new SwarmException( 'This TestSwarm requires a run token. Either none was entered or it is invalid.' );
 	}
 
 	/** Don't allow direct instantiations of this class, use newFromContext instead. */
