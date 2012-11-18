@@ -15,7 +15,6 @@ class Client {
 	protected $context;
 
 	protected $clientRow;
-	protected $userRow;
 
 	/**
 	 * @param $clientId int
@@ -62,18 +61,7 @@ class Client {
 			$clientRow->id
 		));
 
-		$userRow = $db->getRow(str_queryf(
-			'SELECT
-				*
-			FROM
-				users
-			WHERE id = %u
-			LIMIT 1;',
-			$clientRow->user_id
-		));
-
 		$this->clientRow = $clientRow;
-		$this->userRow = $userRow;
 	}
 
 	protected function loadNew() {
@@ -88,38 +76,16 @@ class Client {
 		}
 
 		// Running a client doesn't require being logged in
-		$username = $request->getSessionData( 'username', $request->getVal( 'item' ) );
-		if ( !$username ) {
-			throw new SwarmException( 'Username required.' );
-		}
-
-		// Figure out what the user's ID number is
-		$userRow = $db->getRow(str_queryf(
-			'SELECT * FROM users WHERE name = %s LIMIT 1;',
-			$username
-		));
-
-		// If the user doesn't have one, create a new user row for this name
-		if ( !$userRow || !$userRow->id ) {
-			$db->query(str_queryf(
-				// This omits some of the required columns but seems to work regardless.
-				// See also github.com/jquery/testswarm/issues/148 which will fix this.
-				'INSERT INTO users (name, updated, created) VALUES(%s, %s, %s);',
-				$username,
-				swarmdb_dateformat( SWARM_NOW ),
-				swarmdb_dateformat( SWARM_NOW )
-			));
-			$userRow = $db->getRow(str_queryf(
-				'SELECT * FROM users WHERE id = %u LIMIT 1;',
-				$db->getInsertId()
-			));
+		$clientName = $request->getVal( 'item', 'anonymous' );
+		if ( LoginAction::isValidName( $clientName ) ) {
+			throw new SwarmException( 'Invalid name.' );
 		}
 
 		// Insert in a new record for the client and get its ID
 		$db->query(str_queryf(
-			'INSERT INTO clients (user_id, useragent_id, useragent, ip, updated, created)
+			'INSERT INTO clients (name, useragent_id, useragent, ip, updated, created)
 			VALUES(%u, %s, %s, %s, %s, %s);',
-			$userRow->id,
+			$clientName,
 			$browserInfo->getSwarmUaID(),
 			$browserInfo->getRawUA(),
 			$request->getIP(),
@@ -136,10 +102,6 @@ class Client {
 
 	public function getClientRow() {
 		return $this->clientRow;
-	}
-
-	public function getUserRow() {
-		return $this->userRow;
 	}
 
 	/**

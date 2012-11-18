@@ -156,10 +156,10 @@ class MigrateUaIDScript extends MaintenanceScript {
 
 						// Input should either be empty (to skip) or be a valid uaID,
 						// otherwise, repeat the question.
-						while ( ( $input = $this->cliInput() ) && !isset( $browserIndex->$input ) ) {
+						while ( ( $input = $this->cliInput() ) !== '' && !isset( $browserIndex->$input ) ) {
 							$this->out( 'The entered uaID was not found. Try again.' );
 						}
-						if ( $input ) {
+						if ( $input !== '' ) {
 							$this->runBatch( $row->useragent_id, $input, $batchSize );
 						}
 					}

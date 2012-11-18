@@ -81,13 +81,12 @@ $swarmAutoLoadClasses = array(
 	'LoginAction' => 'inc/actions/LoginAction.php',
 	'LogoutAction' => 'inc/actions/LogoutAction.php',
 	'PingAction' => 'inc/actions/PingAction.php',
+	'ProjectAction' => 'inc/actions/ProjectAction.php',
 	'ProjectsAction' => 'inc/actions/ProjectsAction.php',
 	'ResultAction' => 'inc/actions/ResultAction.php',
 	'SaverunAction' => 'inc/actions/SaverunAction.php',
 	'ScoresAction' => 'inc/actions/ScoresAction.php',
-	'SignupAction' => 'inc/actions/SignupAction.php',
 	'SwarmstateAction' => 'inc/actions/SwarmstateAction.php',
-	'UserAction' => 'inc/actions/UserAction.php',
 	'WipejobAction' => 'inc/actions/WipejobAction.php',
 	'WiperunAction' => 'inc/actions/WiperunAction.php',
 	# Pages
@@ -105,7 +104,6 @@ $swarmAutoLoadClasses = array(
 	'RunPage' => 'inc/pages/RunPage.php',
 	'SaverunPage' => 'inc/pages/SaverunPage.php',
 	'ScoresPage' => 'inc/pages/ScoresPage.php',
-	'SignupPage' => 'inc/pages/SignupPage.php',
 	'UserPage' => 'inc/pages/UserPage.php',
 	# Libs
 	'UA' => 'inc/libs/ua-parser/php/UAParser.php',
@@ -133,7 +131,7 @@ if ( !is_readable( $swarmInstallDir . '/' . $swarmAutoLoadClasses['UA'] ) ) {
 /**@}*/
 
 /**
- * Load settings
+ * Load and validate settings
  * @{
  */
 // Generic utilities that we still need globally unconditionally
@@ -204,6 +202,23 @@ if ( !is_dir( $swarmConfig->storage->cacheDir ) || !is_writable( $swarmConfig->s
 $refresh_control = 4; // 2012-06-11
 $swarmConfig->client->refresh_control += $refresh_control;
 
+unset( $server, $refresh_control );
+
+/**@}*/
+
+
+/**
+ * Custom PHP settings
+ * @{
+ */
+if ( $swarmConfig->debug->phpErrorReporting ) {
+	error_reporting( -1 );
+	ini_set( 'display_errors', 1 );
+}
+
+// Increase the session timeout to two weeks (3600 * 24 * 14)
+ini_set( 'session.gc_maxlifetime', '1209600' );
+
 /**@}*/
 
 
@@ -212,20 +227,5 @@ $swarmConfig->client->refresh_control += $refresh_control;
  * @{
  */
 $swarmContext = new TestSwarmContext( $swarmConfig );
-
-/**@}*/
-
-
-/**
- * Custom settings
- * @{
- */
-if ( $swarmContext->getConf()->debug->phpErrorReporting ) {
-	error_reporting( -1 );
-	ini_set( 'display_errors', 1 );
-}
-
-// Increase the session timeout to two weeks (3600 * 24 * 14)
-ini_set( 'session.gc_maxlifetime', '1209600' );
 
 /**@}*/

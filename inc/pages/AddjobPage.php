@@ -51,23 +51,12 @@ class AddjobPage extends Page {
 		$db = $this->getContext()->getDB();
 		$conf = $this->getContext()->getConf();
 		$request = $this->getContext()->getRequest();
+		$auth = $this->getContext()->getAuth();
 
 		$browserIndex = BrowserInfo::getBrowserIndex();
 
 		$addjobPageUrlEsc = htmlspecialchars( swarmpath( 'addjob' ) );
-
-		if ( $request->getSessionData( 'auth' ) == 'yes' ) {
-			$userName = $request->getSessionData( 'username' );
-			$userNameEsc = htmlspecialchars( $userName );
-			$userAuthTokenEsc = htmlspecialchars( $db->getOne(str_queryf(
-				'SELECT auth
-				FROM users
-				WHERE name = %s',
-				$userName
-			)) );
-		} else {
-			$userNameEsc = $userAuthTokenEsc = '';
-		}
+		$userNameEsc = $auth ? htmlentities( $auth->projectRow->id ) : '';
 
 		$formHtml = <<<HTML
 <form action="$addjobPageUrlEsc" method="post" class="form-horizontal">
@@ -76,15 +65,15 @@ class AddjobPage extends Page {
 		<legend>Authentication</legend>
 
 		<div class="control-group">
-			<label class="control-label" for="form-authUsername">User name:</label>
+			<label class="control-label" for="form-authID">Project ID:</label>
 			<div class="controls">
-				<input type="text" name="authUsername" required value="$userNameEsc" id="form-authUsername">
+				<input type="text" name="authID" required value="$userNameEsc" id="form-authID">
 			</div>
 		</div>
 		<div class="control-group">
-			<label class="control-label" for="form-authToken">Auth token:</label>
+			<label class="control-label" for="form-authToken">Project Auth Token:</label>
 			<div class="controls">
-				<input type="text" name="authToken" required value="$userAuthTokenEsc" id="form-authToken" class="input-xlarge">
+				<input type="text" name="authToken" required id="form-authToken" class="input-xlarge">
 			</div>
 		</div>
 	</fieldset>

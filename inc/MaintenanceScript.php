@@ -12,7 +12,6 @@ abstract class MaintenanceScript {
 	private $flags = array();
 	private $options = array();
 	private $generalArgKeys = array();
-	private $requiredKeys = array();
 	private $parsed = array();
 
 	abstract protected function init();
@@ -47,9 +46,8 @@ abstract class MaintenanceScript {
 	 * @param string $name: at least 2 characters
 	 * @param string $type: one of "boolean", "value"
 	 * @param string $description
-	 * @param bool $required
 	 */
-	protected function registerOption( $name, $type, $description, $required = false ) {
+	protected function registerOption( $name, $type, $description ) {
 		static $types = array( 'boolean', 'value' );
 		if ( !is_string( $name ) || strlen ( $name ) < 2 || !in_array( $type, $types ) ) {
 			$this->error( 'Illegal option registration' );
@@ -57,7 +55,6 @@ abstract class MaintenanceScript {
 		$this->options[$name] = array(
 			'type' => $type,
 			'description' => $description,
-			'required' => (bool) $required
 		);
 	}
 
@@ -66,7 +63,6 @@ abstract class MaintenanceScript {
 		// but we use our own format instead (see also php.net/getopt).
 		$getoptShort = '';
 		$getoptLong = array();
-		$requiredKeys = array();
 		foreach ( $this->flags as $flagKey => $flagInfo ) {
 			switch ( $flagInfo['type'] ) {
 			case 'value':
@@ -78,9 +74,6 @@ abstract class MaintenanceScript {
 			}
 		}
 		foreach ( $this->options as $optionName => $optionInfo ) {
-			if ( $optionInfo['required'] ) {
-				$requiredKeys[] = $optionName;
-			}
 			switch ( $optionInfo['type'] ) {
 			case 'value':
 				$getoptLong[] = $optionName . '::';
@@ -95,14 +88,6 @@ abstract class MaintenanceScript {
 			$this->error( 'Parsing command line arguments failed.' );
 		}
 		$this->parsed = $parsed;
-
-		if ( !$this->getOption( 'help' ) ) {
-			foreach ( $requiredKeys as $requiredKey ) {
-				if ( !isset( $parsed[$requiredKey] ) || !$parsed[$requiredKey] ) {
-					$this->error( 'Option "' . $requiredKey  . '" is required.' );
-				}
-			}
-		}
 	}
 
 	protected function getFlag( $key ) {
@@ -234,23 +219,14 @@ $description
 	}
 
 	/**
-	 * @param string $message: [optional] text before the input.
+	 * @param string $message: [optional] text before the input cursor.
+	 * @return string
 	 */
 	protected function cliInput( $prefix = '> ' ) {
-		static $isatty = null;
 		if ( $this->getOption( 'quiet' ) ) {
 			return '';
 		}
-		if ( $isatty === null ) {
-			// Both `echo "foo" | php script.php` and `php script.php > foo.txt`
-			// are being prevented.
-			$isatty = posix_isatty( STDIN ) && posix_isatty( STDOUT );
-
-			// No need to re-run this check each time, we abort within the if-null check
-			if ( !$isatty ) {
-				$this->error( 'This script requires an interactive terminal for output and input. Use --quiet to skip input requests.' );
-			}
-		}
+		$this->checkAtty();
 
 		if ( function_exists( 'readline' ) ) {
 			// Use readline if available, it's much nicer to work with for the user
@@ -261,6 +237,61 @@ $description
 			$this->outRaw( $prefix );
 			return rtrim( fgets( STDIN ), "\n" );
 		}
+	}
+
+	/**
+	 * Retreive a secret value from the cli.
+	 * Based on http://www.dasprids.de/blog/2008/08/22/getting-a-password-hidden-from-stdin-with-php-cli.
+	 *
+	 * @param string $message: [optional] text before the input cursor.
+	 * @param string $type: [optional] hidden or stars.
+	 * @return string
+	 */
+	protected function cliInputSecret( $prefix = '> ', $type = 'stars' ) {
+		if ( $this->getOption( 'quiet' ) ) {
+			return '';
+		}
+		$this->checkAtty();
+
+		// Can't use readline, it always echoes to the screen.
+		$this->outRaw( $prefix );
+
+		$sttyStyle = shell_exec( 'stty -g' );
+
+		if ( $type !== 'stars' ) {
+			shell_exec( 'stty -echo' );
+			$input = rtrim( fgets( STDIN ), "\n" );
+			$this->outRaw( "\n" );
+		} else {
+			shell_exec( 'stty -icanon -echo min 1 time 0' );
+			$input = '';
+			while ( true ) {
+				$char = fgetc( STDIN );
+
+				// Ready
+				if ( $char === "\n" ) {
+					$this->outRaw( "\n" );
+					break;
+				// Backspace
+				} else if ( ord( $char) === 127 ) {
+					if ( strlen( $input) > 0 ) {
+						// Replace last character with blank and return to previous position
+						// (back, space, back).
+						fwrite( STDOUT, "\x08 \x08" );
+						$input = substr( $input, 0, -1 );
+					}
+				// More input
+				} else {
+					fwrite( STDOUT, '*' );
+					$input .= $char;
+				}
+			}
+		}
+
+		// Restore stty style
+		shell_exec( 'stty ' . escapeshellarg( $sttyStyle ) );
+
+		return $input;
 	}
 
 	protected function out( $text ) {
@@ -287,6 +318,22 @@ $description
 
 	final protected function getContext() {
 		return $this->context;
+	}
+
+	/** @return bool */
+	final protected function checkAtty() {
+		static $isatty = null;
+		if ( $isatty === null ) {
+			// Both `echo "foo" | php script.php` and `php script.php > foo.txt`
+			// are being prevented.
+			$isatty = posix_isatty( STDIN ) && posix_isatty( STDOUT );
+
+			// No need to re-run this check each time, we abort within the if-null check
+			if ( !$isatty ) {
+				$this->error( 'This script requires an interactive terminal for output and input. Use --quiet to skip input requests.' );
+			}
+		}
+		return $isatty;
 	}
 
 	final private function __construct() {}

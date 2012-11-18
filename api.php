@@ -11,12 +11,8 @@
  * @since 1.0.0
  * @package TestSwarm
  */
-// Valid entry point
 define( 'SWARM_ENTRY', 'API' );
-
-header( 'X-Robots-Tag: noindex,nofollow', true );
-
-require_once 'inc/init.php';
+require_once __DIR__ . '/inc/init.php';
 
 $action = $swarmContext->getRequest()->getVal( 'action', 'info' );
 if ( !$action ) {
@@ -29,9 +25,12 @@ $format = $swarmContext->getRequest()->getVal( 'format', 'json' );
 $className = ucfirst( $action ) . 'Action';
 $className = class_exists( $className ) ? $className : null;
 
+// Ignore the current session if this is a grey format.
 if ( !Api::isGreyFormat( $format ) ) {
 	session_start();
 }
+
+header( 'X-Robots-Tag: noindex,nofollow', true );
 
 if ( $className ) {
 	try {

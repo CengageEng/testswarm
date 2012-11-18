@@ -41,22 +41,20 @@ class HomePage extends Page {
 			. '</p></blockquote>'
 			. '</div>';
 
-		$html .= '<div class="span5"><div class="well well-small">';
+		$html .= '<div class="span5"><div class="well">';
 		if ( !$conf->client->requireRunToken ) {
 			if ( $browserInfo->isInSwarmUaIndex() ) {
-					$html .= '<p><strong>Join ' . $siteNameHtml . '!</strong><br>'
-					. ' You have a browser that we need to test against, join the swarm to help us out!</p>';
-				if ( !$request->getSessionData( 'username' ) ) {
-					$html .= '<form action="' . swarmpath( '' ) . '" method="get" class="form-horizontal">'
+					$auth = $this->getContext()->getAuth();
+					$suggestedClientName = $auth ? $auth->projectRow->id : '';
+
+					$html .= '<h3>Join ' . $siteNameHtml . '!</h3>'
+					. '<p>You have a browser that we need to test against, join the swarm to help us out!</p>'
+					. '<form action="' . swarmpath( '' ) . '" method="get" class="form">'
 						. '<input type="hidden" name="action" value="run">'
-						. '<label for="form-item">Username:</label>'
-						. ' <input type="text" name="item" id="form-item" placeholder="Enter username..">'
-						. ' <input type="submit" value="Join the swarm" class="btn btn-primary">'
-						. '</form>';
-				} else {
-					$html .= '<p><a href="' . swarmpath( "run/{$request->getSessionData( 'username' )}/" )
-					. '" class="btn btn-primary btn-large">Join the swarm</a></p>';
-				}
+						. '<div class="input-append">'
+						. '<input type="text" name="item" id="form-item" placeholder="Enter name" value="' . htmlspecialchars( $suggestedClientName ) . '">'
+						. '<input type="submit" value="Join the swarm" class="btn btn-primary">'
+					. '</div></form>';
 			} else {
 				$uaData = $browserInfo->getUaData();
 				unset( $uaData->displayInfo );

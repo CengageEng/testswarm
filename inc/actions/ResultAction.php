@@ -33,7 +33,7 @@ class ResultAction extends Action {
 		$conf = $context->getConf();
 		$request = $context->getRequest();
 
-		$resultsID = $request->getInt( 'item' );
+		$item = $request->getInt( 'item' );
 		$row = $db->getRow(str_queryf(
 			'SELECT
 				run_id,
@@ -43,7 +43,7 @@ class ResultAction extends Action {
 				created
 			FROM runresults
 			WHERE id = %u;',
-			$resultsID
+			$item
 		));
 
 		if ( !$row ) {
@@ -93,26 +93,17 @@ class ResultAction extends Action {
 			WHERE id = %u;',
 			$row->client_id
 		));
-		$userRow = $db->getRow(str_queryf(
-			'SELECT
-				id,
-				name
-			FROM users
-			WHERE id = %u;',
-			$clientRow->user_id
-		));
 
 		$data['client'] = array(
 			'id' => $clientRow->id,
+			'name' => $clientRow->name,
 			'uaID' => $clientRow->useragent_id,
-			'userAgent' => $clientRow->useragent,
-			'userID' => $userRow->id,
-			'userName' => $userRow->name,
-			'userUrl' => swarmpath( 'user/' . $userRow->name ),
+			'uaRaw' => $clientRow->useragent,
+			'url' => swarmpath( 'client/' . $clientRow->id ),
 		);
 
 		$data['resultInfo'] = array(
-			'id' => $resultsID,
+			'id' => $row->id,
 			'runID' => $row->run_id,
 			'clientID' => $row->client_id,
 			'status' => self::getStatus( $row->status ),

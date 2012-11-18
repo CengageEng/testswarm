@@ -106,15 +106,16 @@ class DBUpdateScript extends MaintenanceScript {
 
 		/**
 		 * 1.0.0
-		 * useragents and run_client table removed, many column changes, new runresults table.
+		 * - useragents, run_client and users table removed
+		 * - many column changes
+		 * - new runresults and projects tables
 		 */
 		// If the previous version was before 1.0.0 we won't offer an update, because most
-		// changes in 1.0.0 can't be simulated without human intervention. The changes are not
+		// changes in 1.0.0 can't be migrated without human intervention. The changes are not
 		// backwards compatible. Instead do a few quick checks to verify this is in fact a
-		// pre-1.0.0 database, then ask the user for a re-install from scratch
-		// (it does mostly migrate the users table).
+		// pre-1.0.0 database, then ask the user for a re-install from scratch.
 		$has_run_client = $db->tableExists( 'run_client' );
-		$has_users_request = $db->fieldExists( 'users', 'request' );
+		$has_users_request = $db->tableExists( 'users' );
 		$clients_useragent_id = $db->fieldInfo( 'clients', 'useragent_id' );
 		if ( !is_object( $clients_useragent_id ) ) {
 			$this->unknownDatabaseState( 'clients.useragent_id not found' );
@@ -141,13 +142,7 @@ class DBUpdateScript extends MaintenanceScript {
 				return;
 			}
 
-			$this->out( "Import user names and tokens from the old database after re-installing?\n"
-				. "(Note: password and seed cannot be restored due to incompatibility in the database.\n"
-				. ' Instead the auth token will be used as the the new password) (Y/N)' );
-			$reimportUsers = $this->cliInput();
-
 			// Drop all known TestSwarm tables in the database
-			// (except users, handled separately)
 			foreach( array(
 				'runresults', // New in 1.0.0
 				'run_client', // Removed in 1.0.0
@@ -156,6 +151,7 @@ class DBUpdateScript extends MaintenanceScript {
 				'useragents', // Removed in 1.0.0
 				'runs',
 				'jobs',
+				'users', // Removed in 1.0.0 
 			) as $dropTable ) {
 				$this->outRaw( "Dropping $dropTable table..." );
 				$exists = $db->tableExists( $dropTable );
@@ -166,23 +162,6 @@ class DBUpdateScript extends MaintenanceScript {
 					$this->out( 'SKIPPED (didn\'t exist)' );
 				}
 			}
-
-			// Handle users table (reimport or drop as well)
-			$userRows = array();
-			if ( $reimportUsers === 'Y' ) {
-				$this->out( 'Upgrading users table' );
-				$this->outRaw( 'Fetching current users...' );
-				$has_users = $db->tableExists( 'users' );
-				if ( !$has_users ) {
-						$this->out( 'SKIPPED (users table didn\'t exist)' );
-				} else {
-					$userRows = $db->getRows( 'SELECT * FROM users' );
-					$this->out( 'OK' );
-				}
-			}
-			$this->outRaw( 'Dropping users table...' );
-			$dropped = $db->query( 'DROP TABLE users' );
-			$this->out( ' ' . ($dropped ? 'OK' : 'FAILED') );
 
 			// Create new tables
 			$this->outRaw( 'Creating new tables... (this may take a few minutes)' );
@@ -199,47 +178,6 @@ class DBUpdateScript extends MaintenanceScript {
 			}
 			$this->out( 'OK' );
 
-			if ( $reimportUsers === 'Y' ) {
-				$this->out( 'Re-importing ' . count( $userRows ) . ' users...' );
-				foreach ( $userRows as $userRow ) {
-					$this->outRaw( '- creating user "' . $userRow->name . '"... ' );
-					if ( empty( $userRow->password ) || empty( $userRow->seed ) || empty( $userRow->auth ) ) {
-						$this->out( 'SKIPPED: Not a real account but a swarm client.' );
-						continue;
-					}
-					try {
-						$signupAction = SignupAction::newFromContext( $this->getContext() );
-						// Password stored in the old datbase is a hash of the old seed (of type 'double'_
-						// and the actual password. We can't create this user with the same password because
-						// sha1 is not supposed to be decodable.
-						// I tried overriding the created row after the creation with the old seed and password,
-						// but that didn't work because the old seed doesn't fit in the new seed field (of binary(40)).
-						// When inserted mysql transforms it into something else and sha1(seed + password) will no
-						// longer match the hash. So instead create the new user with the auth token as password.
-						$signupAction->doCreateUser( $userRow->name, $userRow->auth );
-						$err = $signupAction->getError();
-						if ( !$err ) {
-							$this->outRaw( 'OK. Restoring auth token... ' );
-							$data = $signupAction->getData();
-							$updated = $db->query(str_queryf(
-								'UPDATE users
-								SET
-									auth = %s
-								WHERE id = %u',
-								// authToken is used in addjob scripts.
-								$userRow->auth,
-								$data['userID']
-							));
-							$this->out( $updated ? 'OK.' : 'FAILED.' );
-						} else {
-							$this->out( "FAILED. SignupAction error. {$err['info']}" );
-						}
-					} catch ( Exception $e ) {
-						$this->out( "FAILED. Unexpected exception thrown while creating account. {$e->getMessage()}" );
-					}
-				}
-
-			} // End of users re-import
 		} // End of 1.0.0-alpha update
 
 

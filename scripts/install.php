@@ -38,7 +38,8 @@ class DBInstallScript extends MaintenanceScript {
 			'useragents', // Removed in 1.0.0
 			'runs',
 			'jobs',
-			'users',
+			'users', // Removed in 1.0.0
+			'projects', // New in 1.0.0
 		);
 		$tablesExists = false;
 		foreach ( $dbTables as $dbTable ) {

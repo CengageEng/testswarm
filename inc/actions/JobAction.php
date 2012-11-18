@@ -1,6 +1,6 @@
 <?php
 /**
- * "Job" action.
+ * Job action.
  *
  * @author Timo Tijhof, 2012
  * @since 0.1.0
@@ -67,14 +67,13 @@ class JobAction extends Action {
 	public static function getJobInfoFromId( Database $db, $jobID ) {
 		$jobRow = $db->getRow(str_queryf(
 			'SELECT
-				jobs.id as job_id,
-				jobs.name as job_name,
-				jobs.created as job_created,
-				users.name as user_name
+				id,
+				name,
+				project_id,
+				created
 			FROM
-				jobs, users
-			WHERE jobs.id = %u
-			AND   users.id = jobs.user_id;',
+				jobs
+			WHERE id = %u;',
 			$jobID
 		));
 
@@ -82,12 +81,13 @@ class JobAction extends Action {
 			return false;
 		}
 
-		return array(
-			'id' => $jobID,
-			'name' => $jobRow->job_name,
-			'ownerName' => $jobRow->user_name,
-			'creationTimestamp' => $jobRow->job_created
+		$jobInfo = array(
+			'id' => intval( $jobRow-> id ),
+			'name' => $jobRow->name,
+			'projectID' => $jobRow->project_id,
 		);
+		self::addTimestampsTo( $jobInfo, $jobRow->created, 'created' );
+		return $jobInfo;
 	}
 
 	/**

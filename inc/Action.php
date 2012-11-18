@@ -70,12 +70,16 @@ abstract class Action {
 	}
 
 	/**
-	 * Enforce user authentication. Centralized logic.
-	 * @param string|int $user [optional] Additionally, verify that the
-	 * user is of a certain ID or username.
-	 * @return false|int: user id
+	 * Enforce authentication requirement.
+	 * This method, by design, does not look at the session. The reason is that this
+	 * is used from the API. API actions need to provide authentication with the request.
+	 * The user session with the index entry point must not be used to prevent CSRF.
+	 *
+	 * @param string $project: [optional] If given, authentication is only
+	 *  considered valid if the the user has authenticated for this project.
+	 * @return false|string: project ID.
 	 */
-	final protected function doRequireAuth( $user = null ) {
+	final protected function doRequireAuth( $project = null ) {
 		$db = $this->getContext()->getDB();
 		$request = $this->getContext()->getRequest();
 
@@ -84,43 +88,36 @@ abstract class Action {
 			return false;
 		}
 
-		$authUsername = $request->getVal( 'authUsername' );
+		$authID = $request->getVal( 'authID' );
 		$authToken = $request->getVal( 'authToken' );
 
-		if ( !$authUsername || !$authToken ) {
+		if ( !$authID || !$authToken ) {
 			$this->setError( 'missing-parameters' );
 			return false;
 		}
 
-		if ( is_string( $user ) && $user !== $authUsername ) {
+		if ( is_string( $project ) && $project !== $authID ) {
 			$this->setError( 'unauthorized' );
 			return false;
 		}
 
-		// Check authentication
-		$userRow = $db->getRow(str_queryf(
+		// Confirm authentication
+		$projectRow = $db->getRow(str_queryf(
 			'SELECT
 				id
-			FROM users
-			WHERE name = %s
-			AND   auth = %s;',
-			$authUsername,
-			$authToken
+			FROM projects
+			WHERE id = %s
+			AND   auth_token = %s;',
+			$authID,
+			sha1( $authToken )
 		));
 
-		if ( !$userRow ) {
+		if ( !$projectRow ) {
 			$this->setError( 'unauthorized' );
 			return false;
 		}
 
-		$userId = (int)$userRow->id;
-
-		if ( is_int( $user ) && $user !== $userId ) {
-			$this->setError( 'unauthorized' );
-			return false;
-		}
-
-		return $userId;
+		return $projectRow->id;
 	}
 
 	final public function getError() {

@@ -1,6 +1,6 @@
 <?php
 /**
- * "Info" action.
+ * Info action.
  *
  * @author Timo Tijhof, 2012
  * @since 1.0.0

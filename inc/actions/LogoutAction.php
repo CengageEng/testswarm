@@ -10,7 +10,7 @@ class LogoutAction extends Action {
 
 	/**
 	 * @actionMethod POST: Required.
-	 * @actionAuth: Yes.
+	 * @actionAuth: Required.
 	 */
 	public function doAction() {
 		$request = $this->getContext()->getRequest();
@@ -18,17 +18,12 @@ class LogoutAction extends Action {
 		// Only go through authentication check if we're actually logged-in,
 		// if we somehow end up here when not logged-in at all, just clear
 		// whatever stale session there is and respond successful.
-		if ( $request->getSessionData( 'auth' ) == 'yes' ) {
+		if ( $this->getContext()->getAuth() ) {
 			if ( !$this->doRequireAuth() ) {
 				return;
 			}
 		}
 
-		$request->setSessionData( 'username', null );
-		$request->setSessionData( 'auth', null );
-
-		$this->setData( array(
-			'status' => 'logged-out',
-		) );
+		$request->setSessionData( 'auth', null );;
 	}
 }

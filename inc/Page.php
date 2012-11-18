@@ -176,7 +176,9 @@ abstract class Page {
 			header( 'X-Frame-Options: ' . $frameOptions, true );
 		}
 
-		$request = $this->getContext()->getRequest();
+		$context = $this->getContext();
+		$request = $context->getRequest();
+		$auth = $context->getAuth();
 
 		// ProjectsAction could throw an exception, which needs to be caught here,
 		// since Error500Page (exception handler) also uses Page::output() eventually.
@@ -184,38 +186,16 @@ abstract class Page {
 		// because page output is also used on the Error500Page.
 
 		$projects = array();
-		$user = null;
 
 		if ( !isset( $this->exceptionObj ) ) {
 			try {
-				$projectsActionContext = $this->getContext()->createDerivedRequestContext(
-					array(
-						'action' => 'projects',
-						'sort' => 'name',
-						'sort_oder' => 'asc',
-					)
-				);
-				$projectsAction = ProjectsAction::newFromContext( $projectsActionContext );
+				$projectsAction = ProjectsAction::newFromContext( $context );
 				$projectsAction->doAction();
+
 				$projects = $projectsAction->getData();
 
-				if ( $request->getSessionData( 'auth' ) === 'yes' ) {
-					$db = $this->getContext()->getDB();
-
-					$userName = $request->getSessionData( 'username' );
-					$userAuthToken = $db->getOne(str_queryf(
-						'SELECT auth
-						FROM users
-						WHERE name = %s',
-						$userName
-					));
-					$user = array(
-						'name' => $userName,
-						'authToken' => $userAuthToken,
-					);
-				}
 			} catch ( Exception $e ) {
-				$pageObj = Error500Page::newFromContext( $this->getContext() );
+				$pageObj = Error500Page::newFromContext( $context );
 				$pageObj->setExceptionObj( $e );
 				$pageObj->output();
 				exit;
@@ -232,7 +212,7 @@ abstract class Page {
 	}
 
 	$subTitleSuffix = $this->getSubTitle() ? ": {$this->getSubTitle()}" : "";
-	$htmlTitle = $this->getTitle() . $subTitleSuffix . ' - ' . $this->getContext()->getConf()->web->title;
+	$htmlTitle = $this->getTitle() . $subTitleSuffix . ' - ' . $context->getConf()->web->title;
 	$displayTitleHtml = $this->getDisplayTitleHtml();
 ?>
 	<title><?php echo htmlentities( $htmlTitle ); ?></title>
@@ -241,11 +221,12 @@ abstract class Page {
 	<script src="<?php echo swarmpath( 'js/jquery.js' ); ?>"></script>
 	<script src="<?php echo swarmpath( 'js/bootstrap-dropdown.js' ); ?>"></script>
 	<script>SWARM = <?php
-		$infoAction = InfoAction::newFromContext( $this->getContext() );
+		$infoAction = InfoAction::newFromContext( $context );
 		$infoAction->doAction();
 		echo json_encode( $infoAction->getData() );
-	?>;SWARM.user = <?php
-		echo json_encode( $user );
+	?>;SWARM.auth = <?php
+		// SWARM.auth is not part of the InfoAction API because it contains tokens.
+		echo json_encode( $auth ? $auth->projectRow : null );
 	?>;</script><?php
 
 	foreach ( $this->styleSheets as $styleSheet ) {
@@ -261,7 +242,7 @@ abstract class Page {
 	<div class="navbar navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container">
-				<a class="brand" href="<?php echo swarmpath( '' );?>"><?php echo htmlspecialchars( $this->getContext()->getConf()->web->title ); ?></a>
+				<a class="brand" href="<?php echo swarmpath( '' );?>"><?php echo htmlspecialchars( $context->getConf()->web->title ); ?></a>
 				<div class="nav-collapse">
 					<ul class="nav">
 						<li><a href="<?php echo swarmpath( '' ); ?>">Home</a></li>
@@ -277,7 +258,7 @@ abstract class Page {
 <?php
 foreach ( $projects as $project ) {
 ?>
-								<li><a href="<?php echo htmlspecialchars( swarmpath( "user/{$project['name']}" ) ); ?>"><?php
+								<li><a href="<?php echo htmlspecialchars( swarmpath( "project/{$project['name']}" ) ); ?>"><?php
 									echo htmlspecialchars( $project['name'] );
 								?></a></li>
 <?php
@@ -290,17 +271,15 @@ foreach ( $projects as $project ) {
 					</ul>
 					<ul class="nav pull-right">
 <?php
-	if ( $request->getSessionData( 'username' ) && $request->getSessionData( 'auth' ) == "yes" ) {
-		$username = htmlspecialchars( $request->getSessionData( 'username' ) );
+	if ( $auth ) {
 ?>
-						<li><a href="<?php echo swarmpath( "user/$username" ); ?>">Hello, <?php echo $username;?>!</a></li>
-						<li><a href="<?php echo swarmpath( "run/$username" );?>">Join the Swarm</a></li>
+						<li><a href="<?php echo swarmpath( "project/{$auth->projectRow->id}" ); ?>">Hello, <?php echo htmlspecialchars( $auth->projectRow->display_title );?>!</a></li>
+						<li><a href="<?php echo swarmpath( "addjob" );?>">Add job</a></li>
 						<li><a href="<?php echo swarmpath( 'logout' ); ?>" class="swarm-logout-link">Logout</a></li>
 <?php
 	} else {
 ?>
 						<li><a href="<?php echo swarmpath( 'login' ); ?>">Login</a></li>
-						<li><a href="<?php echo swarmpath( 'signup' ); ?>">Signup</a></li>
 <?php
 	}
 ?>
@@ -335,8 +314,8 @@ foreach ( $projects as $project ) {
 		echo "\n\t" . html_tag( 'script', array( 'src' => $bodyScript ) );
 	}
 
-	if ( $this->getContext()->getConf()->debug->dbLogQueries ) {
-		$queryLog = $this->getContext()->getDB()->getQueryLog();
+	if ( $context->getConf()->debug->dbLogQueries ) {
+		$queryLog = $context->getDB()->getQueryLog();
 		$queryLogHtml = '<hr><h3>Database query log</h3><div class="well"><ul class="unstyled">';
 		foreach ( $queryLog as $i => $queryInfo ) {
 			if ( $i !== 0 ) {

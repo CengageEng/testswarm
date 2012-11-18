@@ -95,7 +95,7 @@ may work as well.
    `chmod 777 cache`.
 
 1. Install the TestSwarm database by running:
-   `php scripts/dbInstall.php`
+   `php scripts/install.php`
 
 1. Fetch the latest user-agent information:
    `php inc/libs/ua-parser/php/UAParser.php -get`<br/>

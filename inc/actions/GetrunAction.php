@@ -1,6 +1,6 @@
 <?php
 /**
- * "Getrun" action.
+ * Getrun action.
  *
  * @author John Resig, 2008-2011
  * @since 0.1.0
@@ -10,8 +10,8 @@ class GetrunAction extends Action {
 
 	/**
 	 * @actionMethod POST: Required.
-	 * @actionParam run_token string
-	 * @actionParam client_id int
+	 * @actionParam int client_id
+	 * @actionParam string run_token
 	 */
 	public function doAction() {
 		$browserInfo = $this->getContext()->getBrowserInfo();

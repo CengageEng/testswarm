@@ -42,6 +42,7 @@ class WiperunAction extends Action {
 			return;
 		}
 
+		// TODO: User > Project
 		$jobOwner = $db->getOne(str_queryf(
 			'SELECT
 				users.name as user_name

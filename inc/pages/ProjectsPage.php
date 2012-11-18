@@ -27,19 +27,19 @@ class ProjectsPage extends Page {
 			. '<table class="table table-striped">'
 			. '<thead><tr>'
 				. '<th>Project name</th>'
-				. '<th class="span2">Jobs</th>'
-				. '<th class="span2">Most recent job</th>'
-				. '<th class="span4">Creation date</th>'
+				. '<th class="span2">Latest job</th>'
 			. '</tr></thead>'
 			. '<tbody>';
 
 		foreach ( $projects as $project ) {
-			$html .= '<tr>'
-				. '<td><a href="' . htmlspecialchars( swarmpath( "user/{$project['name']}" ) ) . '">' . htmlspecialchars( $project['name'] ) . '</a></td>'
-				. '<td class="num">' . htmlspecialchars( number_format( $project['jobCount'] ) ) . '</td>'
-				. '<td><a href="' . htmlspecialchars( swarmpath( "job/{$project['jobLatest']}" ) ) . '">Job #' . htmlspecialchars( $project['jobLatest'] ) . '</a></td>'
-				. '<td class="num">' . self::getPrettyDateHtml( $project, 'created' ) . '</td>'
-				. '</tr>';
+			$html .= '<tr>';
+			$html .= '<td><a href="' . htmlspecialchars( swarmpath( "project/{$project['id']}" ) ) . '">' . htmlspecialchars( $project['name'] ) . '</a></td>';
+			if ( $project['jobLatest'] ) {
+				$html .= '<td><a href="' . htmlspecialchars( swarmpath( "job/{$project['jobLatest']['id']}" ) ) . '">Job #' . htmlspecialchars( $project['jobLatest']['id'] ) . '</a></td>';
+			} else {
+				$html .= '<td><em>--</em></td>';
+			}
+			$html .= '</tr>';
 		}
 		$html .= '</tbody></table>';
 

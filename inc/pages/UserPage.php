@@ -9,7 +9,7 @@
  */
 class UserPage extends Page {
 	public function execute() {
-		$action = UserAction::newFromContext( $this->getContext() );
+		$action = ProjectAction::newFromContext( $this->getContext() );
 		$action->doAction();
 
 		$this->setAction( $action );

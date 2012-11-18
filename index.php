@@ -10,10 +10,8 @@
  * @since 0.1.0
  * @package TestSwarm
  */
-// Valid entry point
 define( 'SWARM_ENTRY', 'INDEX' );
-
-require_once 'inc/init.php';
+require_once __DIR__ . '/inc/init.php';
 
 session_start();
 

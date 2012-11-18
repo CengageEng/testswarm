@@ -85,7 +85,7 @@ class ResultPage extends Page {
 			. '<tr><th>UA ID</th><td>'
 				. '<code>' . htmlspecialchars( $data['client']['uaID'] ) . '</code>'
 			. '<tr><th>User-Agent</th><td>'
-				. '<code>' . htmlspecialchars( $data['client']['userAgent'] ) . '</code>'
+				. '<code>' . htmlspecialchars( $data['client']['uaRaw'] ) . '</code>'
 			. '</td></tr>'
 			. '<tr><th>Run time</th><td>'
 			. ( isset( $data['resultInfo']['runTime'] )

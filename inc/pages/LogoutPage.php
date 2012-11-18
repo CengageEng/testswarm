@@ -25,7 +25,7 @@ class LogoutPage extends Page {
 		$data = $this->getAction()->getData();
 		$error = $this->getAction()->getError();
 
-		if ( !$error && $data['status'] == 'logged-out' ) {
+		if ( !$error ) {
 			$this->setTitle( 'Logged out!' );
 			$html .= html_tag( 'div', array( 'class' => 'alert alert-success' ),
 				'Thanks for running TestSwarm. You are now signed out.'

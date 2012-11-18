@@ -50,7 +50,7 @@ class RunPage extends Page {
 					. '</div>'
 				. '</div>'
 				. '<div class="span7">'
-					. '<h2>' . htmlspecialchars( $client->getUserRow()->name ) . '</h2>'
+					. '<h2>' . htmlspecialchars( $client->getClientRow()->name ) . '</h2>'
 					. '<p><strong>Status:</strong> <span id="msg"></span></p>'
 				. '</div>'
 			. '</div>'

@@ -1,6 +1,6 @@
 <?php
 /**
- * "Ping" action.
+ * Ping action.
  *
  * @author Timo Tijhof, 2012
  * @since 1.0.0
@@ -12,8 +12,8 @@ class PingAction extends Action {
 	 * Update client 'alive' and refresh client config.
 	 *
 	 * @actionMethod POST: Required.
-	 * @actionParam run_token string
-	 * @actionParam client_id int
+	 * @actionParam string run_token
+	 * @actionParam int client_id
 	 */
 	public function doAction() {
 		$conf = $this->getContext()->getConf();

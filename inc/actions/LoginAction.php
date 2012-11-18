@@ -1,6 +1,6 @@
 <?php
 /**
- * "Login" action.
+ * Login action.
  *
  * @author John Resig, 2008-2011
  * @since 0.1.0
@@ -10,58 +10,136 @@ class LoginAction extends Action {
 
 	/**
 	 * @actionMethod POST: Required.
-	 * @actionParam username string
-	 * @actionParam password string
+	 * @actionParam projectID string
+	 * @actionParam projectPassword string
 	 */
 	public function doAction() {
-		$db = $this->getContext()->getDB();
-		$request = $this->getContext()->getRequest();
+		$context = $this->getContext();
+		$db = $context->getDB();
+		$request = $context->getRequest();
+		$auth = $context->getAuth();
 
 		// Already logged in ?
-		if ( $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes" ) {
-			$username = $request->getSessionData( "username" );
+		if ( $auth ) {
+			$projectID = $auth->projectRow->id;
+
 		// Try logging in
 		} else {
 
 			if ( !$request->wasPosted() ) {
-				$this->setError( "requires-post" );
+				$this->setError( 'requires-post' );
 				return;
 			}
 
-			$username = $request->getVal( "username" );
-			$password = $request->getVal( "password" );
+			$projectID = $request->getVal( 'projectID' );
+			$projectPassword = $request->getVal( 'projectPassword' );
 
-			if ( !$username || !$password ) {
-				$this->setError( "missing-parameters" );
+			if ( !$projectID || !$projectPassword ) {
+				$this->setError( 'missing-parameters' );
 				return;
 			}
 
-			$userRow = $db->getRow(str_queryf(
-				"SELECT id
-				FROM users
-				WHERE name = %s
-				AND   password = SHA1(CONCAT(seed, %s))
-				LIMIT 1;",
-				$username,
-				$password
+			$projectRow = $db->getRow(str_queryf(
+				'SELECT
+					id,
+					display_title,
+					site_url,
+					password,
+					auth_token,
+					updated,
+					created
+				FROM projects
+				WHERE id = %s;',
+				$projectID
 			));
+			$passwordHash = $projectRow->password;
+			unset( $projectRow->password );
 
-			// If the query returned a result, start logged-in session
-			if ( $userRow ) {
-				$request->setSessionData( "username", $username );
-				$request->setSessionData( "auth", "yes" );
-
+			if ( self::comparePasswords( $passwordHash, $projectPassword ) ) {
+				// Start auth session
+				$request->setSessionData( 'auth', (object) array(
+					'projectRow' => $projectRow
+				) );
 			} else {
-				$this->setError( "invalid-input" );
+				$this->setError( 'invalid-input' );
 				return;
 			}
 		}
 
-		// We're still here, logged-in succeeded!
+		// We're still here, authentication succeeded!
 		$this->setData( array(
-			"status" => "logged-in",
-			"username" => $username,
+			'id' => $projectID
 		) );
-		return;
+	}
+
+	/**
+	 * Only allow lowercase a-z, 0-9 and dashed, must start with a letter (github.com/jquery/testswarm/issues/118)
+	 * @param string $name
+	 * @return bool
+	 */
+	public static function isValidName( $name ) {
+		return !!preg_match( "/^[a-z][-a-z0-9]*$/", $name );
+	}
+
+	protected static function getHashAlgo() {
+		static $algo = null;
+		if ( $algo === null ) {
+			// Use the best acceptable algorithm in this environment
+			$algos = hash_algos();
+			foreach ( array( 'whirlpool', 'sha256', 'sha1' ) as $choice ) {
+				if ( in_array( $choice, $algos ) ) {
+					$algo = $choice;
+					return $algo;
+				}
+			};
+			throw new SwarmException( 'No acceptable algorithm available.' );
+		}
+		return $algo;
+	}
+
+	public static function generateRandomHash( $length ) {
+		$hash = '';
+		while ( strlen( $hash ) < $length ) {
+			// Various random sources
+			$rand =
+				serialize( $_SERVER )
+				. rand() . uniqid( mt_rand(), true )
+				. ( function_exists( 'getmypid' )  ? getmypid() : '' )
+				. ( function_exists( 'memory_get_usage' )  ? memory_get_usage( true ) : '' )
+				. realpath( __FILE__ )
+				. serialize( @stat( __FILE__ ) ) // stat() can be a bad boy
+			;
+			$hash .= hash( self::getHashAlgo(), $rand );
+
+		}
+		return substr( $hash, 1, $length );
+	}
+
+	/**
+	 * @param string $password Plaintext password.
+	 * @param string $salt [optional] A salt will be generated, optionally
+	 *  pass this to re-use a salt.
+	 * @return string
+	 */
+	public static function generatePasswordHash( $password, $salt = false ) {
+		if ( $salt === false ) {
+			$salt = self::generateRandomHash( 8 );
+		}
+		return ':A:' . $salt . ':' . sha1( $salt . '|' . sha1( $password ) );
+	}
+
+	/**
+	 * @param string $hash Password hash (from database).
+	 * @param string $password Plaintext password for comparison.
+	 * @return bool
+	 */
+	public static function comparePasswords( $hash, $password ) {
+		$type = substr( $hash, 0, 3 );
+		if ( $type === ':A:' ) {
+			list( $salt, $realHash ) = explode( ':', substr( $hash, 3 ), 2 );
+			return sha1( $salt . '|' . sha1( $password ) ) === $realHash;
+		} else {
+			return false;
+		}
 	}
 }

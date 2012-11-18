@@ -20,6 +20,7 @@ class JobPage extends Page {
 
 	protected function initContent() {
 		$request = $this->getContext()->getRequest();
+		$auth = $this->getContext()->getAuth();
 
 		$this->setTitle( "Job status" );
 		$this->setRobots( "noindex,nofollow" );
@@ -33,23 +34,24 @@ class JobPage extends Page {
 			$html .= html_tag( 'div', array( 'class' => 'alert alert-error' ), $error['info'] );
 		}
 
-		if ( !isset( $data["jobInfo"] ) ) {
+		if ( !isset( $data['jobInfo'] ) ) {
 			return $html;
 		}
 
-		$this->setSubTitle( '#' . $data["jobInfo"]["id"] );
+		$this->setSubTitle( '#' . $data['jobInfo']['id'] );
 
-		$isAuth = $request->getSessionData( "auth" ) === "yes" && $data["jobInfo"]["ownerName"] == $request->getSessionData( "username" );
+		// TODO: User > Project
+		$isAuth = $auth && $data['jobInfo']['ownerName'] == $auth->projectRow->id;
 
 		$html .=
-			'<h2>' . $data["jobInfo"]["name"] .'</h2>'
+			'<h2>' . $data['jobInfo']['name'] .'</h2>'
 			. '<p><em>Submitted by '
-			. html_tag( "a", array( "href" => swarmpath( "user/{$data["jobInfo"]["ownerName"]}" ) ), $data["jobInfo"]["ownerName"] )
-			. ' on ' . htmlspecialchars( date( "Y-m-d H:i:s", gmstrtotime( $data["jobInfo"]["creationTimestamp"] ) ) )
+			. html_tag( 'a', array( 'href' => swarmpath( "project/{$data['jobInfo']['ownerName']}" ) ), $data['jobInfo']['ownerName'] )
+			. ' on ' . htmlspecialchars( date( 'Y-m-d H:i:s', gmstrtotime( $data['jobInfo']['creationTimestamp'] ) ) )
 			. ' (UTC)' . '</em>.</p>';
 
 		if ( $isAuth ) {
-			$html .= '<script>SWARM.jobInfo = ' . json_encode( $data["jobInfo"] ) . ';</script>';
+			$html .= '<script>SWARM.jobInfo = ' . json_encode( $data['jobInfo'] ) . ';</script>';
 			$action_bar = '<div class="form-actions swarm-item-actions">'
 				. ' <button class="swarm-reset-runs-failed btn btn-info">Reset failed runs</button>'
 				. ' <button class="swarm-reset-runs btn btn-info">Reset all runs</button>'
