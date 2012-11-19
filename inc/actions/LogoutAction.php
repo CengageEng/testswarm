@@ -13,7 +13,6 @@ class LogoutAction extends Action {
 	 * @actionAuth: Required.
 	 */
 	public function doAction() {
-		$request = $this->getContext()->getRequest();
 
 		// Only go through authentication check if we're actually logged-in,
 		// if we somehow end up here when not logged-in at all, just clear
@@ -24,6 +23,6 @@ class LogoutAction extends Action {
 			}
 		}
 
-		$request->setSessionData( 'auth', null );;
+		$this->getContext()->flushAuth();
 	}
 }

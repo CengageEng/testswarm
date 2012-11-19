@@ -45,7 +45,7 @@ class HomePage extends Page {
 		if ( !$conf->client->requireRunToken ) {
 			if ( $browserInfo->isInSwarmUaIndex() ) {
 					$auth = $this->getContext()->getAuth();
-					$suggestedClientName = $auth ? $auth->projectRow->id : '';
+					$suggestedClientName = $auth ? $auth->project->id : '';
 
 					$html .= '<h3>Join ' . $siteNameHtml . '!</h3>'
 					. '<p>You have a browser that we need to test against, join the swarm to help us out!</p>'

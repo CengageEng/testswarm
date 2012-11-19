@@ -108,16 +108,12 @@ class TestSwarmContext {
 
 			$auth = $request->getSessionData( 'auth' );
 			if ( !$auth ) {
-				$request->setSessionData( 'auth', null );
-				$this->auth = false;
-				return $this->auth;
+				return $this->flushAuth();
 			}
 
 			// Invalidate session if it is malformed (different structure)
-			if ( !isset( $auth->projectRow ) || !is_object( $auth->projectRow ) ) {
-				$request->setSessionData( 'auth', null );
-				$this->auth = false;
-				return $this->auth;
+			if ( !isset( $auth->sessionToken ) || !isset( $auth->project ) || !is_object( $auth->project ) ) {
+				return $this->flushAuth();
 			}
 
 			// Invalidate session if it is outdated (password changed, project deleted, ..)
@@ -127,16 +123,20 @@ class TestSwarmContext {
 					updated
 				FROM projects
 				WHERE id = %s',
-				$auth->projectRow->id
+				$auth->project->id
 			));
-			if ( $auth->projectRow->auth_token !== $projectRow->auth_token || $auth->projectRow->updated !== $projectRow->updated ) {
-				$request->setSessionData( 'auth', null );
-				$this->auth = false;
-				return $this->auth;
+			if ( $auth->project->auth_token !== $projectRow->auth_token || $auth->project->updated !== $projectRow->updated ) {
+				return $this->flushAuth();
 			}
 			// Valid!
 			$this->auth = $auth;
 		}
+		return $this->auth;
+	}
+
+	public function flushAuth() {
+		$this->getRequest()->setSessionData( 'auth', null );
+		$this->auth = false;
 		return $this->auth;
 	}
 

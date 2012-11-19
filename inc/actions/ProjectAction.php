@@ -51,6 +51,10 @@ class ProjectAction extends Action {
 			return;
 		}
 
+		if ( $dir === 'desc' ) {
+			$conds = 'AND id >= ' . intval( $start );
+		}
+
 		// Get list of jobs
 		$jobRows = $db->getRows(str_queryf(
 			'SELECT
@@ -59,9 +63,12 @@ class ProjectAction extends Action {
 			FROM
 				jobs
 			WHERE project_id = %u
-			ORDER BY id DESC
-			LIMIT 15;',
-			$projectID
+			' . $conds . '
+			ORDER BY id ' . strtoupper( $dir ) . '
+			LIMIT %u;',
+			$projectID,
+			// Get one more so we know whether to display navigation
+			$limit + 1
 		));
 		$jobs = array();
 		if ( $jobRows ) {
@@ -81,17 +88,6 @@ class ProjectAction extends Action {
 		// over jobs.
 		$userAgents = array();
 
-		$jobRows = $db->getRows(str_queryf(
-			'SELECT
-				id,
-				name
-			FROM
-				jobs
-			WHERE project_id = %u
-			ORDER BY id DESC
-			LIMIT 15;',
-			$userID
-		));
 		if ( $jobRows ) {
 			$uaRunStatusStrength = array_flip(array(
 				'passed',

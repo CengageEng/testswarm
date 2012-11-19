@@ -41,7 +41,7 @@ class JobPage extends Page {
 		$this->setSubTitle( '#' . $data['jobInfo']['id'] );
 
 		// TODO: User > Project
-		$isAuth = $auth && $data['jobInfo']['ownerName'] == $auth->projectRow->id;
+		$isAuth = $auth && $data['jobInfo']['ownerName'] == $auth->project->id;
 
 		$html .=
 			'<h2>' . $data['jobInfo']['name'] .'</h2>'

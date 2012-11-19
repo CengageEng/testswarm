@@ -21,7 +21,7 @@ class LoginAction extends Action {
 
 		// Already logged in ?
 		if ( $auth ) {
-			$projectID = $auth->projectRow->id;
+			$projectID = $auth->project->id;
 
 		// Try logging in
 		} else {
@@ -58,7 +58,8 @@ class LoginAction extends Action {
 			if ( self::comparePasswords( $passwordHash, $projectPassword ) ) {
 				// Start auth session
 				$request->setSessionData( 'auth', (object) array(
-					'projectRow' => $projectRow
+					'project' => $projectRow,
+					'sessionToken' => self::generateRandomHash( 40 ),
 				) );
 			} else {
 				$this->setError( 'invalid-input' );
@@ -68,6 +69,7 @@ class LoginAction extends Action {
 
 		// We're still here, authentication succeeded!
 		$this->setData( array(
+			'status' => 'ok',
 			'id' => $projectID
 		) );
 	}

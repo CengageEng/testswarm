@@ -71,9 +71,9 @@ abstract class Action {
 
 	/**
 	 * Enforce authentication requirement.
-	 * This method, by design, does not look at the session. The reason is that this
-	 * is used from the API. API actions need to provide authentication with the request.
-	 * The user session with the index entry point must not be used to prevent CSRF.
+	 * Actions need to provide authentication with the request.
+	 * By design this method does not succeed if there is a valid session but
+	 * not tokens. The user session for the GUI must not be used here (to prevent CSRF).
 	 *
 	 * @param string $project: [optional] If given, authentication is only
 	 *  considered valid if the the user has authenticated for this project.
@@ -82,6 +82,7 @@ abstract class Action {
 	final protected function doRequireAuth( $project = null ) {
 		$db = $this->getContext()->getDB();
 		$request = $this->getContext()->getRequest();
+		$auth = $this->getContext()->getAuth();
 
 		if ( !$request->wasPosted() ) {
 			$this->setError( 'requires-post' );
@@ -101,7 +102,12 @@ abstract class Action {
 			return false;
 		}
 
-		// Confirm authentication
+		// Authentication could be from session token in the GUI
+		if ( $auth && $authID === $auth->project->id && $authToken === $auth->sessionToken ) {
+			return $auth->project->id;
+		}
+
+		// Or through API
 		$projectRow = $db->getRow(str_queryf(
 			'SELECT
 				id

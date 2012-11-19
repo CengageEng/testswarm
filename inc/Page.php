@@ -226,7 +226,7 @@ abstract class Page {
 		echo json_encode( $infoAction->getData() );
 	?>;SWARM.auth = <?php
 		// SWARM.auth is not part of the InfoAction API because it contains tokens.
-		echo json_encode( $auth ? $auth->projectRow : null );
+		echo json_encode( $auth );
 	?>;</script><?php
 
 	foreach ( $this->styleSheets as $styleSheet ) {
@@ -273,7 +273,7 @@ foreach ( $projects as $project ) {
 <?php
 	if ( $auth ) {
 ?>
-						<li><a href="<?php echo swarmpath( "project/{$auth->projectRow->id}" ); ?>">Hello, <?php echo htmlspecialchars( $auth->projectRow->display_title );?>!</a></li>
+						<li><a href="<?php echo swarmpath( "project/{$auth->project->id}" ); ?>">Hello, <?php echo htmlspecialchars( $auth->project->display_title );?>!</a></li>
 						<li><a href="<?php echo swarmpath( "addjob" );?>">Add job</a></li>
 						<li><a href="<?php echo swarmpath( 'logout' ); ?>" class="swarm-logout-link">Logout</a></li>
 <?php

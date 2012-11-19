@@ -56,7 +56,8 @@ class AddjobPage extends Page {
 		$browserIndex = BrowserInfo::getBrowserIndex();
 
 		$addjobPageUrlEsc = htmlspecialchars( swarmpath( 'addjob' ) );
-		$userNameEsc = $auth ? htmlentities( $auth->projectRow->id ) : '';
+		$authIDEsc = $auth ? htmlentities( $auth->project->id ) : '';
+		$authTokenEsc = $auth ? htmlentities( $auth->sessionToken ) : '';
 
 		$formHtml = <<<HTML
 <form action="$addjobPageUrlEsc" method="post" class="form-horizontal">
@@ -67,13 +68,13 @@ class AddjobPage extends Page {
 		<div class="control-group">
 			<label class="control-label" for="form-authID">Project ID:</label>
 			<div class="controls">
-				<input type="text" name="authID" required value="$userNameEsc" id="form-authID">
+				<input type="text" name="authID" required value="$authIDEsc" id="form-authID">
 			</div>
 		</div>
 		<div class="control-group">
 			<label class="control-label" for="form-authToken">Project Auth Token:</label>
 			<div class="controls">
-				<input type="text" name="authToken" required id="form-authToken" class="input-xlarge">
+				<input type="text" name="authToken" required value="$authTokenEsc" id="form-authToken" class="input-xlarge">
 			</div>
 		</div>
 	</fieldset>

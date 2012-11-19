@@ -11,7 +11,7 @@ jQuery(function ( $ ) {
 		$( '.pretty' ).prettyDate();
 	}
 
-	if ( SWARM.user ) {
+	if ( SWARM.auth ) {
 		$( '.swarm-logout-link' ).on( 'click', function ( e ) {
 			$( '<form>', {
 				action: SWARM.conf.web.contextpath,
@@ -19,9 +19,9 @@ jQuery(function ( $ ) {
 				css: { display: 'none' }
 			})
 			.append(
-				$( '<input>', { type: 'hidden', name: 'action', value: 'logout' }),
-				$( '<input>', { type: 'hidden', name: 'authUsername', value: SWARM.user.name }),
-				$( '<input>', { type: 'hidden', name: 'authToken', value: SWARM.user.authToken })
+				$( '<input type="hidden"/>' ).prop({ name: 'action', value: 'logout' }),
+				$( '<input type="hidden"/>' ).prop({ name: 'authID', value: SWARM.auth.project.id }),
+				$( '<input type="hidden"/>' ).prop({ name: 'authToken', value: SWARM.auth.sessionToken })
 			)
 			.appendTo( 'body' )
 			.submit();

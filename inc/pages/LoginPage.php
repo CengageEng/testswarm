@@ -16,7 +16,7 @@ class LoginPage extends Page {
 		$error = $action->getError();
 		if ( !$error ) {
 			$data = $action->getData();
-			if ( $data ) {
+			if ( $data && $data['status'] === 'ok' ) {
 				$this->redirect( swarmpath( 'project/' . $data['id'] ) );
 			}
 		}
