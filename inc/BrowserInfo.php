@@ -99,6 +99,14 @@ class BrowserInfo {
 		return $uaData;
 	}
 
+	/**
+	 * Callback for `uasort()`.
+	 *
+	 * @param Array|stdClass $a UA data, as returned by #getUaData and #makeGenericUaData.
+	 * @param Array|stdClass $b UA data.
+	 * @return int Like other PHP comparison functions,
+	 *  returns -1 if A is less than B, +1 if A is greater than B, 0 if they are equal.
+	 */
 	public static function sortUaData( $a, $b ) {
 		$a = is_array( $a ) ? (object)$a : $a;
 		$b = is_array( $b ) ? (object)$b : $b;

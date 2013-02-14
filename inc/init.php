@@ -81,13 +81,13 @@ $swarmAutoLoadClasses = array(
 	'LoginAction' => 'inc/actions/LoginAction.php',
 	'LogoutAction' => 'inc/actions/LogoutAction.php',
 	'PingAction' => 'inc/actions/PingAction.php',
+	'ProjectAction' => 'inc/actions/ProjectAction.php',
 	'ProjectsAction' => 'inc/actions/ProjectsAction.php',
 	'ResultAction' => 'inc/actions/ResultAction.php',
 	'SaverunAction' => 'inc/actions/SaverunAction.php',
 	'ScoresAction' => 'inc/actions/ScoresAction.php',
-	'SignupAction' => 'inc/actions/SignupAction.php',
 	'SwarmstateAction' => 'inc/actions/SwarmstateAction.php',
-	'UserAction' => 'inc/actions/UserAction.php',
+	'UserAction' => 'inc/actions/UserAction.php', // TODO: Remove
 	'WipejobAction' => 'inc/actions/WipejobAction.php',
 	'WiperunAction' => 'inc/actions/WiperunAction.php',
 	# Pages
@@ -100,13 +100,12 @@ $swarmAutoLoadClasses = array(
 	'JobPage' => 'inc/pages/JobPage.php',
 	'LoginPage' => 'inc/pages/LoginPage.php',
 	'LogoutPage' => 'inc/pages/LogoutPage.php',
+	'ProjectPage' => 'inc/pages/ProjectPage.php',
 	'ProjectsPage' => 'inc/pages/ProjectsPage.php',
 	'ResultPage' => 'inc/pages/ResultPage.php',
 	'RunPage' => 'inc/pages/RunPage.php',
 	'SaverunPage' => 'inc/pages/SaverunPage.php',
 	'ScoresPage' => 'inc/pages/ScoresPage.php',
-	'SignupPage' => 'inc/pages/SignupPage.php',
-	'UserPage' => 'inc/pages/UserPage.php',
 	# Libs
 	'UAParser' => 'inc/libs/ua-parser/php/uaparser.php',
 );

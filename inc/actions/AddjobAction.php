@@ -14,22 +14,20 @@ class AddjobAction extends Action {
 
 	/**
 	 * @actionMethod POST: Required.
-	 * @actionParam jobName string: May contain HTML.
-	 * @actionParam runMax int
-	 * @actionParam runNames array
-	 * @actionParam runUrls array
-	 * @actionParam browserSets array
-	 * @actionParam string authUsername
-	 * @actionParam string authToken
-	 * @actionAuth: Yes.
+	 * @actionParam string jobName: May contain HTML.
+	 * @actionParam int runMax
+	 * @actionParam array runNames
+	 * @actionParam array runUrls
+	 * @actionParam array browserSets
+	 * @actionAuth: Required.
 	 */
 	public function doAction() {
 		$conf = $this->getContext()->getConf();
 		$db = $this->getContext()->getDB();
 		$request = $this->getContext()->getRequest();
 
-		$userId = $this->doRequireAuth();
-		if ( !$userId ) {
+		$projectID = $this->doRequireAuth();
+		if ( !$projectID ) {
 			return;
 		}
 
@@ -125,10 +123,10 @@ class AddjobAction extends Action {
 
 		// Create job
 		$isInserted = $db->query(str_queryf(
-			"INSERT INTO jobs (user_id, name, created)
-			VALUES (%u, %s, %s);",
-			$userId,
+			"INSERT INTO jobs (name, project_id, created)
+			VALUES (%s, %s, %s);",
 			$jobName,
+			$projectID,
 			swarmdb_dateformat( SWARM_NOW )
 		));
 

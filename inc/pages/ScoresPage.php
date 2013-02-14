@@ -30,7 +30,8 @@ class ScoresPage extends Page {
 
 		foreach ( $scores as $item ) {
 			$html .= '<tr><td class="num">' . htmlspecialchars( number_format( $item["position"] ) ) . '</td>'
-				. '<td><a href="' . htmlspecialchars( swarmpath( "user/{$item["userName"]}" ) ) . '">' . htmlspecialchars( $item["userName"] ) . '</a></td>'
+				// TODO: ClientPage doesn't exist yet
+				. '<td><a href="' . htmlspecialchars( swarmpath( "client/{$item["userName"]}" ) ) . '">' . htmlspecialchars( $item["userName"] ) . '</a></td>'
 				. '<td class="num">' . htmlspecialchars( number_format( $item["score"] ) ) . '</td></tr>';
 		}
 		$html .= '</tbody></table>';
