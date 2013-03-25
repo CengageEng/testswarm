@@ -40,8 +40,8 @@ class SaverunPage extends Page {
 		 */
 		$script =
 			'<script>'
-			. 'if ( window.parent !== window && window.parent.SWARM.runDone ) {'
-			. 'window.parent.SWARM.runDone();'
+			. 'if ( window.opener !== window && window.opener.SWARM.runDone ) {'
+			. 'window.opener.SWARM.runDone();'
 			. '}'
 			. '</script>';
 
