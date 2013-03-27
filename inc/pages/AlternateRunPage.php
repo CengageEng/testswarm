@@ -6,7 +6,7 @@
  * @since 0.1.0
  * @package TestSwarm
  */
-class SaveMSIERunPage extends Page {
+class AlternaterunPage extends Page {
 
 	protected function initContent() {
         $this->setFrameOptions(false);
