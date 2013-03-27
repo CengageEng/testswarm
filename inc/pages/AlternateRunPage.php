@@ -35,7 +35,7 @@ class AlternaterunPage extends Page {
 			. 'SWARM.run_token = ' . json_encode( $runToken ) . ';'
 			. '</script>';
 
-		$html .= '<div>Alternate runner to handle clients that don't support window.opener.postMessage()</div>';
+		$html .= '<div>Alternate runner to handle clients that do not support window.opener.postMessage()</div>';
 
 		return $html;
 	}
