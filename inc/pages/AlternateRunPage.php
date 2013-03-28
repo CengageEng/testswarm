@@ -6,6 +6,7 @@
  * @since 0.1.0
  * @package TestSwarm
  */
+
 class AlternaterunPage extends Page {
 
 	protected function initContent() {
@@ -25,7 +26,7 @@ class AlternaterunPage extends Page {
 			}
 		}
 
-		$this->setTitle( "MSIE Hack Save Run" );
+		$this->setTitle( "Alternate Run" );
 		$this->bodyScripts[] = swarmpath( "js/alternate.js?" . time() );
 
 		$client = Client::newFromContext( $this->getContext(), $runToken );
