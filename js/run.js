@@ -238,7 +238,7 @@
                                 pauseTimer = setTimeout( leftTimer, 1000 );
                             } else {
                                 timeLeft -= 1;
-                                getTests();
+                                SWARM.runDone();
                             }
                         }, 1000);
 
