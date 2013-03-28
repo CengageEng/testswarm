@@ -1,8 +1,8 @@
 <?php
 /**
- * "Saverun" page.
+ * "Alternaterun" page.
  *
- * @author Timo Tijhof, 2012
+ * @author Brett Fattori, 2013
  * @since 0.1.0
  * @package TestSwarm
  */
@@ -35,7 +35,7 @@ class AlternaterunPage extends Page {
 			. 'SWARM.run_token = ' . json_encode( $runToken ) . ';'
 			. '</script>';
 
-		$html .= '<div>Alternate runner to handle clients that do not support window.opener.postMessage()</div>';
+		$html .= "<div>Alternate runner to handle clients that do not support window.opener.postMessage()</div>";
 
 		return $html;
 	}
