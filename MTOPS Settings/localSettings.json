@@ -1,0 +1,103 @@
+{
+	"database": {
+		"host": "localhost",
+		"database": "testswarm",
+		"username": "swarm_admin",
+		"password": "admin"
+	},
+	"web": {
+		"contextpath": "/testswarm"
+	},
+	"storage": {
+		"cacheDir": "$1/cache"
+	},
+	"userAgents": {
+		"Chrome23": {
+			"browserFamily": "Chrome",
+			"browserMajor": "23"
+		},
+		"Chrome24": {
+			"browserFamily": "Chrome",
+			"browserMajor": "24"
+		},
+		"Chrome25": {
+			"browserFamily": "Chrome",
+			"browserMajor": "25"
+		},
+		"Chrome26": {
+			"browserFamily": "Chrome",
+			"browserMajor": "26"
+		},
+		"Firefox18": {
+			"browserFamily": "Firefox",
+			"browserMajor": "18"
+		},
+		"Firefox19": {
+			"browserFamily": "Firefox",
+			"browserMajor": "19"
+		},
+		"Firefox20": {
+			"browserFamily": "Firefox",
+			"browserMajor": "20"
+		},
+		"IE8": {
+			"browserFamily": "IE",
+			"browserMajor": "8"
+		},
+		"IE9": {
+			"browserFamily": "IE",
+			"browserMajor": "9"
+		},
+		"IE10": {
+			"browserFamily": "IE",
+			"browserMajor": "10"
+		},
+		"Safari6": {
+			"browserFamily": "Safari",
+			"browserMajor": "6"
+		},
+		"iOS6/iPad": {
+			"deviceFamily": "iPad",
+			"osFamily": "iOS",
+			"osMajor": "6"
+		}
+	},
+	"browserSets": {
+        "all": [
+            "Chrome23",
+            "Chrome24",
+            "Chrome25",
+            "Firefox18",
+            "Firefox19",
+            "Firefox20",
+            "IE8",
+            "IE9",
+            "IE10",
+            "Safari6",
+            "iOS6/iPad"
+        ],
+        "supported": [
+            "Chrome25",
+            "Firefox19",
+            "IE8",
+            "IE9",
+            "IE10",
+            "Safari6",
+            "iOS6/iPad"
+        ],
+        "current": [
+            "Chrome25",
+            "Firefox19",
+            "IE10",
+            "Safari6"
+        ],
+        "beta": [
+            "Chrome26",
+            "Firefox20"
+        ],
+        "basic": [
+            "Chrome25",
+            "Firefox19"
+        ]
+    }
+}
