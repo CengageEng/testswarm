@@ -7,7 +7,14 @@
  * @package TestSwarm
  */
 (function ( $, SWARM, undefined ) {
-	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow;
+	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow, uA, proxied;
+
+    uA = navigator.userAgent.toLowerCase();
+
+    // Proxied browsers are responsible for submitting tests, not this script
+    // See alternate.js which does the work
+    proxied = /msie/.test(uA);
+
 
 	function msg( htmlMsg ) {
 		$( '#msg' ).html( htmlMsg );
@@ -215,10 +222,27 @@
 						'test_runner_window'
 					);
 
-					// Timeout after a period of time
-					testTimeout = setTimeout( function () {
-						testTimedout( runInfo );
-					}, SWARM.conf.client.runTimeout * 1000 );
+					// Timeout after a period of time if the client isn't proxied
+                    if (!proxied) {
+                        testTimeout = setTimeout( function () {
+                            testTimedout( runInfo );
+                        }, SWARM.conf.client.runTimeout * 1000 );
+                    } else {
+                        log('Return results proxied to test runner window.');
+
+                        timeLeft = SWARM.conf.client.runTimeout;
+                        pauseTimer = setTimeout(function leftTimer() {
+                            msg('Getting next test in ' + timeLeft + ' seconds.' );
+                            if ( timeLeft >= 1 ) {
+                                timeLeft -= 1;
+                                pauseTimer = setTimeout( leftTimer, 1000 );
+                            } else {
+                                timeLeft -= 1;
+                                getTests();
+                            }
+                        }, 1000);
+
+                    }
 				});
 
 				return;

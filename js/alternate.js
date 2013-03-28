@@ -64,6 +64,7 @@
             data: query,
             dataType: 'json',
             success: function ( data ) {
+                clearTimeout(testTimeout);
                 if ( !data || data.error ) {
                     error( data.error.info );
                 } else {
@@ -75,6 +76,47 @@
                 error();
             }
         });
+    }
+
+    function testTimedout( runInfo ) {
+        // Don't use the cleanupTest promise,
+        // the abort should be reported to the swarm right away,
+        // regardless of whether the window has closed yet.
+        // The next runDone/getTests call handles that instead.
+        retrySend(
+            {
+                action: 'saverun',
+                fail: 0,
+                error: 0,
+                total: 0,
+                status: 3, // ResultAction::STATE_ABORTED
+                report_html: 'Test Timed Out.',
+                run_id: currRunId,
+                client_id: SWARM.client_id,
+                run_token: SWARM.run_token,
+                results_id: runInfo.resultsId,
+                results_store_token: runInfo.resultsStoreToken
+            },
+            function () {
+                testTimedout( runInfo );
+            },
+            function ( data ) {
+                if ( data.saverun === 'ok' ) {
+                    SWARM.runDone();
+                } else {
+                    getTests();
+                }
+            }
+        );
+    }
+
+
+    function runTests() {
+        // Timeout after a period of time
+        testTimeout = setTimeout( function () {
+            testTimedout( runInfo );
+        }, SWARM.conf.client.runTimeout * 1000 );
+
     }
 
     // Needs to be a publicly exposed function, so that when inject.js
@@ -98,5 +140,9 @@
     } else if ( window.attachEvent ) {
         window.attachEvent( 'onmessage', handleMessage );
     }
+
+    $( document).ready( function () {
+        runTests();
+    });
 
 }( jQuery, SWARM ) );
