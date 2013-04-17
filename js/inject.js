@@ -25,7 +25,7 @@
 	beatRate = 20;
 
 	try {
-		doPost = !!window.parent.postMessage;
+		doPost = !!window.opener.postMessage;
 	} catch ( e ) {}
 
 	if ( index !== -1 ) {
@@ -127,7 +127,7 @@
 			}
 
 			if ( !DEBUG ) {
-				window.parent.postMessage( query, '*' );
+				window.opener.postMessage( query, '*' );
 			}
 
 		} else {
