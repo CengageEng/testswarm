@@ -123,6 +123,7 @@
     // does a (potentially cross-domain) <form> submission to the,
     // SaverunPage, it (testWindow) can call this as window.opener.SWARM.runDone().
     SWARM.runDone = function () {
+        window.parent.postMessage('CLOSE', '*');
     };
 
     function handleMessage(e) {

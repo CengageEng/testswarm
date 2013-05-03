@@ -233,7 +233,7 @@
                         timeLeft = SWARM.conf.client.runTimeout;
                         pauseTimer = setTimeout(function leftTimer() {
                             msg('Getting next test in ' + timeLeft + ' seconds.' );
-                            if ( timeLeft >= 1 ) {
+                            if ( timeLeft >= 1 && testWindow && !testWindow.closed) {
                                 timeLeft -= 1;
                                 pauseTimer = setTimeout( leftTimer, 1000 );
                             } else {
