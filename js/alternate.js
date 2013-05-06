@@ -66,7 +66,7 @@
             success: function ( data ) {
                 clearTimeout(testTimeout);
                 if ( !data || data.error ) {
-                    error( data.error.info );
+                    error( data ? data.error.info : "No Data" );
                 } else {
                     errorOut = 0;
                     ok.apply( this, arguments );

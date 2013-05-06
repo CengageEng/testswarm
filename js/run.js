@@ -72,7 +72,7 @@
 			dataType: 'json',
 			success: function ( data ) {
 				if ( !data || data.error ) {
-					error( data.error.info );
+					error( data ? data.error.info : "No Data" );
 				} else {
 					errorOut = 0;
 					ok.apply( this, arguments );
@@ -114,24 +114,28 @@
 			testTimeout = 0;
 		}
 
-		if ( testWindow && !testWindow.closed ) {
-			//closeStartTime = +new Date();
-			closeMaxTime = ( +new Date() ) + ( SWARM.conf.client.closeWindowTimeout * 1000 );
-			testWindow.close();
-			setTimeout(function pollTestWindowClosed() {
-				if ( ( +new Date() ) > closeMaxTime ) {
-					d.reject();
-				} else if ( testWindow && !testWindow.closed ) {
-					// Keep polling until its closed or closeMaxTime reached.
-					setTimeout( pollTestWindowClosed, 10 );
-				} else {
-					testWindow = null;
-					d.resolve();
-				}
-			}, 10 );
-		} else {
-			d.resolve();
-		}
+        try {
+            if ( testWindow && !testWindow.closed ) {
+                //closeStartTime = +new Date();
+                closeMaxTime = ( +new Date() ) + ( SWARM.conf.client.closeWindowTimeout * 1000 );
+                testWindow.close();
+                setTimeout(function pollTestWindowClosed() {
+                    if ( ( +new Date() ) > closeMaxTime ) {
+                        d.reject();
+                    } else if ( testWindow && !testWindow.closed ) {
+                        // Keep polling until its closed or closeMaxTime reached.
+                        setTimeout( pollTestWindowClosed, 10 );
+                    } else {
+                        testWindow = null;
+                        d.resolve();
+                    }
+                }, 10 );
+            } else {
+                d.resolve();
+            }
+        } catch (ex) {
+            d.resolve();
+        }
 
 		return d.promise();
 	}
@@ -233,11 +237,16 @@
                         timeLeft = SWARM.conf.client.runTimeout;
                         pauseTimer = setTimeout(function leftTimer() {
                             msg('Getting next test in ' + timeLeft + ' seconds.' );
-                            if ( timeLeft >= 1 && testWindow && !testWindow.closed) {
-                                timeLeft -= 1;
-                                pauseTimer = setTimeout( leftTimer, 1000 );
-                            } else {
-                                timeLeft -= 1;
+                            try {
+                                if ( timeLeft >= 1 && testWindow && !testWindow.closed) {
+                                    timeLeft -= 1;
+                                    pauseTimer = setTimeout( leftTimer, 1000 );
+                                } else {
+                                    timeLeft -= 1;
+                                    SWARM.runDone();
+                                }
+                            } catch (ex) {
+                                timeLeft -=1;
                                 SWARM.runDone();
                             }
                         }, 1000);
