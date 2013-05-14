@@ -205,6 +205,15 @@
 				// is finished (if it is already clean, it will resolve the promise right
 				// away).
 				cleanupTest().done(function () {
+                    var windowOptions = undefined;
+                    if (SWARM.conf.client.width || SWARM.conf.client.height) {
+                        // Specifying a width and height will (supposedly) open in a
+                        // new window, not a tab.  This gets us around the problem of
+                        // timers in tabs being delayed.
+                        windowOptions = 'width=' + SWARM.conf.client.width || 640 + ',height=' +
+                            SWARM.conf.client.height || 480;
+                    }
+
 					testWindow = window.open(
 						currRunUrl + (currRunUrl.indexOf( '?' ) > -1 ? '&' : '?') + $.param({
 							// Cache buster
@@ -221,9 +230,10 @@
 									results_store_token: runInfo.resultsStoreToken
 								})
 						}),
-						// Use a name to make sure we won't have multiple windows open.
+						// Use a name to make sure we have a client-specific window open.
 						// In theory the opened window is always closed. Just in case..
-						'test_runner_window'
+						'test_runner_window_' + SWARM.client_id,
+                        windowOptions
 					);
 
 					// Timeout after a period of time if the client isn't proxied
