@@ -7,7 +7,7 @@
  * @package TestSwarm
  */
 (function ( $, SWARM, undefined ) {
-	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow, uA, proxied;
+	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow, uA, proxied, iPadFlag;
 
     uA = navigator.userAgent.toLowerCase();
 
@@ -15,6 +15,7 @@
     // See alternate.js which does the work
     proxied = /msie/.test(uA);
 
+    iPadFlag = /iPad/.test(uA);
 
 	function msg( htmlMsg ) {
 		$( '#msg' ).html( htmlMsg );
@@ -206,7 +207,7 @@
 				// away).
 				cleanupTest().done(function () {
                     var windowOptions = undefined;
-                    if (SWARM.conf.client.width || SWARM.conf.client.height) {
+                    if (!iPadFlag && (SWARM.conf.client.width || SWARM.conf.client.height)) {
                         // Specifying a width and height will (supposedly) open in a
                         // new window, not a tab.  This gets us around the problem of
                         // timers in tabs being delayed.
