@@ -19,30 +19,26 @@ class CleanupAction extends Action {
 
 		// Clean up old jobs
 		$db->query(str_queryf(
-		    "DELETE FROM jobs WHERE created < now() - INTERVAL %u %s;",
-		     $conf->database->maxAge,
-		     $conf->database->maxInterval
+		    "DELETE FROM jobs WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+		     $conf->database->maxAge
 		));
 
 		// Clean up old results
 		$db->query(str_queryf(
-		    "DELETE FROM runresults WHERE created < now() - INTERVAL %u %s;",
-		     $conf->database->maxAge,
-		     $conf->database->maxInterval
+		    "DELETE FROM runresults WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+		     $conf->database->maxAge
 		));
 
 		// Clean up old runs
 		$db->query(str_queryf(
-		    "DELETE FROM runs WHERE created < now() - INTERVAL %u %s;",
-		     $conf->database->maxAge,
-		     $conf->database->maxInterval
+		    "DELETE FROM runs WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+		     $conf->database->maxAge
 		));
 
 		// Clean up old run user agents
 		$db->query(str_queryf(
-		    "DELETE FROM run_useragent WHERE created < now() - INTERVAL %u %s;",
-		     $conf->database->maxAge,
-		     $conf->database->maxInterval
+		    "DELETE FROM run_useragent WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+		     $conf->database->maxAge
 		));
 
 		$resetTimedoutRuns = 0;
