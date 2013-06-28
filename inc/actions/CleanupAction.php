@@ -17,6 +17,26 @@ class CleanupAction extends Action {
 		$conf = $this->getContext()->getConf();
 		$request = $this->getContext()->getRequest();
 
+		// Clean up old jobs
+		$db->query(str_queryf(
+		    "DELETE FROM jobs WHERE created < now() - INTERVAL " . $conf->database->maxAge . " " . $conf->database->maxInterval
+		));
+
+		// Clean up old results
+		$db->query(str_queryf(
+		    "DELETE FROM runresults WHERE created < now() - INTERVAL " . $conf->database->maxAge . " " . $conf->database->maxInterval
+		));
+
+		// Clean up old runs
+		$db->query(str_queryf(
+		    "DELETE FROM runs WHERE created < now() - INTERVAL " . $conf->database->maxAge . " " . $conf->database->maxInterval
+		));
+
+		// Clean up old run user agents
+		$db->query(str_queryf(
+		    "DELETE FROM run_useragent WHERE created < now() - INTERVAL " . $conf->database->maxAge . " " . $conf->database->maxInterval
+		));
+
 		$resetTimedoutRuns = 0;
 
 		// Get clients that are considered disconnected (not responding to the latest pings).

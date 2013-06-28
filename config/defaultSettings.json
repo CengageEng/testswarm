@@ -6,7 +6,9 @@
 		"host": "localhost",
 		"database": "testswarm",
 		"username": false,
-		"password": false
+		"password": false,
+        "maxAge": "2",
+        "maxInterval": "WEEK"
 	},
 	"customMsg": {
 		"homeIntro_html": "Welcome to $1! More information about what TestSwarm is and how it works can be found on <a href=\"//github.com/jquery/testswarm/wiki\">the TestSwarm wiki</a>."
