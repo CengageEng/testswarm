@@ -17,15 +17,15 @@ class CleanupAction extends Action {
 		$conf = $this->getContext()->getConf();
 		$request = $this->getContext()->getRequest();
 
-		// Clean up old jobs
-		$db->query(str_queryf(
-		    "DELETE FROM jobs WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
-		     $conf->database->maxAge
-		));
-
 		// Clean up old results
 		$db->query(str_queryf(
 		    "DELETE FROM runresults WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+		     $conf->database->maxAge
+		));
+
+		// Clean up old run user agents
+		$db->query(str_queryf(
+		    "DELETE FROM run_useragent WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
 		     $conf->database->maxAge
 		));
 
@@ -35,9 +35,15 @@ class CleanupAction extends Action {
 		     $conf->database->maxAge
 		));
 
-		// Clean up old run user agents
+		// Clean up old jobs
 		$db->query(str_queryf(
-		    "DELETE FROM run_useragent WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+		    "DELETE FROM jobs WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+		     $conf->database->maxAge
+		));
+
+		// Clean up old clients
+		$db->query(str_queryf(
+		    "DELETE FROM clients WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
 		     $conf->database->maxAge
 		));
 
