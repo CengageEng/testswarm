@@ -42,10 +42,10 @@ class CleanupAction extends Action {
 		));
 
 		// Clean up old clients
-		$db->query(str_queryf(
-		    "DELETE FROM clients WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
-		     $conf->database->maxAge
-		));
+//		$db->query(str_queryf(
+//		    "DELETE FROM clients WHERE created < now() - INTERVAL %u " . $conf->database->maxInterval .";",
+//		     $conf->database->maxAge
+//		));
 
 		$resetTimedoutRuns = 0;
 
