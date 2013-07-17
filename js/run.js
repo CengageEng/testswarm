@@ -13,9 +13,9 @@
 
     // Proxied browsers are responsible for submitting tests, not this script
     // See alternate.js which does the work
-    proxied = /msie/.test(uA);
+    proxied = /msie/.test(uA) || /iP(ad|hone|od)/.test(uA);
 
-    iPadFlag = /iPad/.test(uA);
+    iPadFlag = /iP(ad|hone|od)/.test(uA);
 
 	function msg( htmlMsg ) {
 		$( '#msg' ).html( htmlMsg );
