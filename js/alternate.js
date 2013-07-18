@@ -7,7 +7,15 @@
  * @package TestSwarm
  */
 (function ( $, SWARM, undefined ) {
-    var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow;
+    var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow, uA, proxied, iOSFlag;
+
+    uA = navigator.userAgent.toLowerCase();
+
+    // Proxied browsers are responsible for submitting tests, not this script
+    // See alternate.js which does the work
+    proxied = /msie/.test(uA) || /ip(ad|hone|od)/.test(uA);
+    iOSFlag = /ip(ad|hone|od)/.test(uA);
+
 
     function msg( htmlMsg ) {
         $( '#msg' ).html( htmlMsg );
@@ -101,11 +109,7 @@
                 testTimedout( runInfo );
             },
             function ( data ) {
-                if ( data.saverun === 'ok' ) {
-                    SWARM.runDone();
-                } else {
-                    getTests();
-                }
+                SWARM.runDone();
             }
         );
     }
@@ -123,7 +127,11 @@
     // does a (potentially cross-domain) <form> submission to the,
     // SaverunPage, it (testWindow) can call this as window.opener.SWARM.runDone().
     SWARM.runDone = function () {
-        window.parent.postMessage('CLOSE', '*');
+        if (iOSFlag) {
+            window.parent.postMessage('TRANSITION', '*');
+        } else {
+            window.parent.postMessage('CLOSE', '*');
+        }
     };
 
     function handleMessage(e) {

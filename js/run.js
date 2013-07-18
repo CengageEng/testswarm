@@ -7,15 +7,14 @@
  * @package TestSwarm
  */
 (function ( $, SWARM, undefined ) {
-	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow, uA, proxied, iPadFlag;
+	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, testWindow, uA, proxied, iOSFlag;
 
     uA = navigator.userAgent.toLowerCase();
 
     // Proxied browsers are responsible for submitting tests, not this script
     // See alternate.js which does the work
     proxied = /msie/.test(uA) || /ip(ad|hone|od)/.test(uA);
-
-    iPadFlag = /ip(ad|hone|od)/.test(uA);
+    iOSFlag = /ip(ad|hone|od)/.test(uA);
 
 	function msg( htmlMsg ) {
 		$( '#msg' ).html( htmlMsg );
@@ -207,61 +206,80 @@
 				// away).
 				cleanupTest().done(function () {
                     var windowOptions = undefined;
-                    if (!iPadFlag && (SWARM.conf.client.width || SWARM.conf.client.height)) {
-                        // Specifying a width and height will (supposedly) open in a
-                        // new window, not a tab.  This gets us around the problem of
-                        // timers in tabs being delayed.
-                        windowOptions = 'width=' + SWARM.conf.client.width || 640 + ',height=' +
-                            SWARM.conf.client.height || 480;
-                    }
-
-					testWindow = window.open(
-						currRunUrl + (currRunUrl.indexOf( '?' ) > -1 ? '&' : '?') + $.param({
-							// Cache buster
-							'_' : new Date().getTime(),
-							// Homing signal for inject.js so that it can find its target for action=saverun
-							'swarmURL' : window.location.protocol + '//' + window.location.host + SWARM.conf.web.contextpath +
-								'index.php?' +
-								$.param({
-									status: 2, // ResultAction::STATE_FINISHED
-									run_id: currRunId,
-									client_id: SWARM.client_id,
-									run_token: SWARM.run_token,
-									results_id: runInfo.resultsId,
-									results_store_token: runInfo.resultsStoreToken
-								})
-						}),
-						// Use a name to make sure we have a client-specific window open.
-						// In theory the opened window is always closed. Just in case..
-						'test_runner_window_' + SWARM.client_id,
-                        windowOptions
-					);
-
-					// Timeout after a period of time if the client isn't proxied
-                    if (!proxied) {
-                        testTimeout = setTimeout( function () {
-                            testTimedout( runInfo );
-                        }, SWARM.conf.client.runTimeout * 1000 );
+                    if (iOSFlag) {
+                        window.location =
+                            currRunUrl + (currRunUrl.indexOf( '?' ) > -1 ? '&' : '?') + $.param({
+                                // Cache buster
+                                '_' : new Date().getTime(),
+                                // Homing signal for inject.js so that it can find its target for action=saverun
+                                'swarmURL' : window.location.protocol + '//' + window.location.host + SWARM.conf.web.contextpath +
+                                    'index.php?' +
+                                    $.param({
+                                        status: 2, // ResultAction::STATE_FINISHED
+                                        run_id: currRunId,
+                                        client_id: SWARM.client_id,
+                                        run_token: SWARM.run_token,
+                                        results_id: runInfo.resultsId,
+                                        results_store_token: runInfo.resultsStoreToken
+                                    })
+                            });
                     } else {
-                        log('Return results proxied to test runner window.');
+                        if (SWARM.conf.client.width || SWARM.conf.client.height) {
+                            // Specifying a width and height will (supposedly) open in a
+                            // new window, not a tab.  This gets us around the problem of
+                            // timers in tabs being delayed.
+                            windowOptions = 'width=' + SWARM.conf.client.width || 640 + ',height=' +
+                                SWARM.conf.client.height || 480;
+                        }
 
-                        timeLeft = SWARM.conf.client.runTimeout;
-                        pauseTimer = setTimeout(function leftTimer() {
-                            msg('Getting next test in ' + timeLeft + ' seconds.' );
-                            try {
-                                if ( timeLeft >= 1 && testWindow && !testWindow.closed) {
-                                    timeLeft -= 1;
-                                    pauseTimer = setTimeout( leftTimer, 1000 );
-                                } else {
-                                    timeLeft -= 1;
+                        testWindow = window.open(
+                            currRunUrl + (currRunUrl.indexOf( '?' ) > -1 ? '&' : '?') + $.param({
+                                // Cache buster
+                                '_' : new Date().getTime(),
+                                // Homing signal for inject.js so that it can find its target for action=saverun
+                                'swarmURL' : window.location.protocol + '//' + window.location.host + SWARM.conf.web.contextpath +
+                                    'index.php?' +
+                                    $.param({
+                                        status: 2, // ResultAction::STATE_FINISHED
+                                        run_id: currRunId,
+                                        client_id: SWARM.client_id,
+                                        run_token: SWARM.run_token,
+                                        results_id: runInfo.resultsId,
+                                        results_store_token: runInfo.resultsStoreToken
+                                    })
+                            }),
+                            // Use a name to make sure we have a client-specific window open.
+                            // In theory the opened window is always closed. Just in case..
+                            'test_runner_window_' + SWARM.client_id,
+                            windowOptions
+                        );
+
+                        // Timeout after a period of time if the client isn't proxied
+                        if (!proxied) {
+                            testTimeout = setTimeout( function () {
+                                testTimedout( runInfo );
+                            }, SWARM.conf.client.runTimeout * 1000 );
+                        } else {
+                            log('Return results proxied to test runner window.');
+
+                            timeLeft = SWARM.conf.client.runTimeout;
+                            pauseTimer = setTimeout(function leftTimer() {
+                                msg('Getting next test in ' + timeLeft + ' seconds.' );
+                                try {
+                                    if ( timeLeft >= 1 && testWindow && !testWindow.closed) {
+                                        timeLeft -= 1;
+                                        pauseTimer = setTimeout( leftTimer, 1000 );
+                                    } else {
+                                        timeLeft -= 1;
+                                        SWARM.runDone();
+                                    }
+                                } catch (ex) {
+                                    timeLeft -=1;
                                     SWARM.runDone();
                                 }
-                            } catch (ex) {
-                                timeLeft -=1;
-                                SWARM.runDone();
-                            }
-                        }, 1000);
+                            }, 1000);
 
+                        }
                     }
 				});
 
